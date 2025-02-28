@@ -31,6 +31,7 @@ import { nanoid } from 'nanoid';
 import { useSpring, animated } from '@react-spring/web';
 import useMeasure from 'react-use-measure';
 
+import { defaultRenderExplanations } from '../../../../utils/render_explanations';
 import * as builtinCollectionServices from '../../../../services/collection';
 import { sourceLanguageAtom, targetLanguageAtom } from '../LanguageArea';
 import { useConfig, useToastStyle, useVoice } from '../../../../hooks';
@@ -535,41 +536,9 @@ export default function TargetArea(props) {
                                         );
                                     })}
                                 {result['explanations'] &&
-                                    result['explanations'].map((explanations) => {
-                                        return (
-                                            <div key={nanoid()}>
-                                                {explanations['explains'] &&
-                                                    explanations['explains'].map((explain, index) => {
-                                                        return (
-                                                            <span key={nanoid()}>
-                                                                {index === 0 ? (
-                                                                    <>
-                                                                        <span
-                                                                            className={`text-[${appFontSize - 2}px] text-default-500 mr-[12px]`}
-                                                                        >
-                                                                            {explanations['trait']}
-                                                                        </span>
-                                                                        <span
-                                                                            className={`font-bold text-[${appFontSize}px] select-text`}
-                                                                        >
-                                                                            {explain}
-                                                                        </span>
-                                                                        <br />
-                                                                    </>
-                                                                ) : (
-                                                                    <span
-                                                                        className={`text-[${appFontSize - 2}px] text-default-500 select-text mr-1`}
-                                                                        key={nanoid()}
-                                                                    >
-                                                                        {explain}
-                                                                    </span>
-                                                                )}
-                                                            </span>
-                                                        );
-                                                    })}
-                                            </div>
-                                        );
-                                    })}
+                                    (builtinServices[getServiceName(currentTranslateServiceInstanceKey)].renderExplanations ?
+                                    builtinServices[getServiceName(currentTranslateServiceInstanceKey)].renderExplanations(result['explanations'], appFontSize) :
+                                    defaultRenderExplanations(result['explanations'], appFontSize))}
                                 <br />
                                 {result['associations'] &&
                                     result['associations'].map((association) => {

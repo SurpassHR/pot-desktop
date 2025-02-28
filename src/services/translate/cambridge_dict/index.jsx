@@ -10,9 +10,11 @@ class Pronunciation {
 }
 
 class Explanation {
-    constructor(trait, explains) {
+    constructor(trait, meaning, explainsEn, explainsZh) {
         this.trait = trait;
-        this.explains = explains;
+        this.meaning = meaning;
+        this.explainsEn = explainsEn;
+        this.explainsZh = explainsZh;
     }
 }
 
@@ -79,8 +81,12 @@ export async function translate(text, from, to) {
         const explanations = [...defBlockNodes].map((defBlockNode) => {
             const trait =
                 wordPos ?? defBlockNode.querySelector('.ddef_h .def.ddef_d.db').innerText.replace(/\s+/g, ' ').trim();
-            const explains = defBlockNode.querySelector('.def-body.ddef_b .trans.dtrans.dtrans-se.break-cj').innerText;
-            return new Explanation(trait, explains.split(';'));
+            const spanWithoutHdb = defBlockNode.querySelector('span.trans.dtrans.dtrans-se.break-cj:not(.hdb)');
+            const spanWithHdb = defBlockNode.querySelector('span.trans.dtrans.dtrans-se.hdb.break-cj');
+            const wordMeaning = spanWithoutHdb != null ? spanWithoutHdb.innerText : null;
+            const explainsZh = spanWithHdb != null ? spanWithHdb.innerText : null;
+            const explainsEn = defBlockNode.querySelector('span.eg.deg').innerText;
+            return new Explanation(trait, wordMeaning?.replaceAll(';', ' ').replaceAll('，', ' '), explainsEn.split(';'), explainsZh.split(';'));
         });
         wordTranslateResult.explanations.push(...explanations);
 
