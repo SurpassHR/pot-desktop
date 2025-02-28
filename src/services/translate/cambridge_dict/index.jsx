@@ -79,14 +79,13 @@ export async function translate(text, from, to) {
         const wordPos = entryNode.querySelector('.posgram')?.innerText;
         const defBlockNodes = entryNode.querySelectorAll('.sense-body.dsense_b .def-block.ddef_block');
         const explanations = [...defBlockNodes].map((defBlockNode) => {
+            // extract word props, word meanings, chn and eng example sentences.
             const trait =
                 wordPos ?? defBlockNode.querySelector('.ddef_h .def.ddef_d.db').innerText.replace(/\s+/g, ' ').trim();
-            const spanWithoutHdb = defBlockNode.querySelector('span.trans.dtrans.dtrans-se.break-cj:not(.hdb)');
-            const spanWithHdb = defBlockNode.querySelector('span.trans.dtrans.dtrans-se.hdb.break-cj');
-            const wordMeaning = spanWithoutHdb != null ? spanWithoutHdb.innerText : null;
-            const explainsZh = spanWithHdb != null ? spanWithHdb.innerText : null;
-            const explainsEn = defBlockNode.querySelector('span.eg.deg').innerText;
-            return new Explanation(trait, wordMeaning?.replaceAll(';', ' ').replaceAll('，', ' '), explainsEn.split(';'), explainsZh.split(';'));
+            const wordMeaning = defBlockNode.querySelector('span.trans.dtrans.dtrans-se.break-cj:not(.hdb)')?.innerText;
+            const explainsZh = defBlockNode.querySelector('span.trans.dtrans.dtrans-se.hdb.break-cj')?.innerText;
+            const explainsEn = defBlockNode.querySelector('span.eg.deg')?.innerText;
+            return new Explanation(trait, wordMeaning?.replaceAll(';', ' ')?.replaceAll('，', ' '), explainsEn?.split(';'), explainsZh?.split(';'));
         });
         wordTranslateResult.explanations.push(...explanations);
 

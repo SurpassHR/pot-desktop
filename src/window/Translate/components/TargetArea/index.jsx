@@ -536,10 +536,9 @@ export default function TargetArea(props) {
                                         );
                                     })}
                                 {result['explanations'] &&
-                                    (builtinServices[getServiceName(currentTranslateServiceInstanceKey)].renderExplanations ?
-                                    builtinServices[getServiceName(currentTranslateServiceInstanceKey)].renderExplanations(result['explanations'], appFontSize) :
-                                    defaultRenderExplanations(result['explanations'], appFontSize))}
-                                <br />
+                                    (builtinServices[getServiceName(currentTranslateServiceInstanceKey)].renderExplanations
+                                        ?.(result['explanations'], appFontSize) ||
+                                        defaultRenderExplanations(result['explanations'], appFontSize))}
                                 {result['associations'] &&
                                     result['associations'].map((association) => {
                                         return (
