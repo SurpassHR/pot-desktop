@@ -27,18 +27,31 @@ export function Config(props) {
 }
 
 export function renderExplanations(explanations, appFontSize) {
+    let actualIndex = 0;
     return explanations.map((explanation) => (
         <div key={nanoid()}>
             {explanation.explainsZh &&
                 explanation.explainsZh.map((explain, index) => {
+                    let rendered = [];
                     if (explanation.meaning != null) {
-                        return (
+                        if (actualIndex++ != 0) {
+                            rendered.push(
+                                <hr style={{border: "1px solid grey", opacity: "40%"}} />
+                            )
+                        }
+                        rendered.push(
                             <>
                                 <span
                                     className={`font-bold text-[${appFontSize}px] select-text`}
                                     key={nanoid()}
                                 >
-                                    {explanation.meaning}
+                                    {explanation.meaning + ' '}
+                                </span>
+                                <span
+                                    className={`italic text-[${appFontSize}px] select-text`}
+                                    key={nanoid()}
+                                >
+                                    {explanation.trait + '.'}
                                 </span>
                                 <br />
                                 <span
@@ -50,7 +63,7 @@ export function renderExplanations(explanations, appFontSize) {
                             </>
                         );
                     } else {
-                        return (
+                        rendered.push(
                             <span
                                 className={`text-[${appFontSize - 2}px] text-default-500 select-text mr-1`}
                                 key={nanoid()}
@@ -59,6 +72,7 @@ export function renderExplanations(explanations, appFontSize) {
                             </span>
                         );
                     }
+                    return rendered;
                 })}
         </div>
     ));
