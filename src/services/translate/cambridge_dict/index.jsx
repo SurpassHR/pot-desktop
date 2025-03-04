@@ -10,11 +10,12 @@ class Pronunciation {
 }
 
 class Explanation {
-    constructor(trait, meaning, explainsEn, explainsZh) {
+    constructor(trait, meaning, explain, exampleZh, exampleEn) {
         this.trait = trait;
         this.meaning = meaning;
-        this.explainsEn = explainsEn;
-        this.explainsZh = explainsZh;
+        this.explain = explain;
+        this.exampleZh = exampleZh;
+        this.exampleEn = exampleEn;
     }
 }
 
@@ -79,13 +80,14 @@ export async function translate(text, from, to) {
         const wordPos = entryNode.querySelector('.posgram')?.innerText;
         const defBlockNodes = entryNode.querySelectorAll('.sense-body.dsense_b .def-block.ddef_block');
         const explanations = [...defBlockNodes].map((defBlockNode) => {
-            // extract word props, word meanings, chn and eng example sentences.
+            // extract part of speech, word meanings, chn and eng example sentences.
             const trait =
                 wordPos ?? defBlockNode.querySelector('.ddef_h .def.ddef_d.db').innerText.replace(/\s+/g, ' ').trim();
-            const wordMeaning = defBlockNode.querySelector('span.trans.dtrans.dtrans-se.break-cj:not(.hdb)')?.innerText;
-            const explainsZh = defBlockNode.querySelector('span.trans.dtrans.dtrans-se.hdb.break-cj')?.innerText;
-            const explainsEn = defBlockNode.querySelector('span.eg.deg')?.innerText;
-            return new Explanation(trait, wordMeaning?.replaceAll(';', ' ')?.replaceAll('，', ' '), explainsEn?.split(';'), explainsZh?.split(';'));
+            const wordMeaning = defBlockNode.querySelector('span.trans.dtrans.dtrans-se.break-cj:not(.hdb)')?.innerText?.replaceAll(';', ' ')?.replaceAll('，', ' ');
+            const wordExplain = defBlockNode.querySelector('div.def.ddef_d.db')?.innerText?.replaceAll(';', ' ')?.replaceAll('，', ' ');
+            const exampleZh = defBlockNode.querySelector('span.trans.dtrans.dtrans-se.hdb.break-cj')?.innerText?.split(';');
+            const exampleEn = defBlockNode.querySelector('span.eg.deg')?.innerText?.split(';');
+            return new Explanation(trait, wordMeaning, wordExplain, exampleZh, exampleEn);
         });
         wordTranslateResult.explanations.push(...explanations);
 
