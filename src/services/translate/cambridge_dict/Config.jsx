@@ -134,7 +134,13 @@ export function renderExplanations(explanations, appFontSize) {
 
     {/* in some cases there will be only a meaning */ }
     function procMeaning(explanation) {
-        return (
+        let rendered = [];
+        if (actualIndex++ !== 0) {
+            rendered.push(
+                <hr style={{ border: "1px solid grey", opacity: "40%" }} />
+            )
+        }
+        rendered.push(
             <>
                 <hr style={{ border: "1px solid grey", opacity: "40%" }} />
                 <span
@@ -157,7 +163,8 @@ export function renderExplanations(explanations, appFontSize) {
                     {explanation.explain + ' '}
                 </span>
             </>
-        )
+        );
+        return rendered;
     }
 
     return explanations.map((explanation) => (
