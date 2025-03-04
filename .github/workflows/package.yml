@@ -1,7 +1,7 @@
 name: Package
 on:
     push:
-        branches: [master]
+        branches: [cambridge_dict]
         tags-ignore: [updater]
 permissions: write-all
 
@@ -26,13 +26,9 @@ jobs:
             - name: Change Version for Windows
               run: |
                   sed -i "s/\"version\":.*/\"version\": \"$(git describe --tags | sed 's/-[0-9]*-.*//g')\",/g" package.json
-
                   sed -i "s/\"version\":.*/\"version\": \"$(git describe --tags | sed 's/-[0-9]*-.*//g')\"/g" src-tauri/tauri.conf.json
-
                   sed -i "s/version = \"0.0.0\"/version = \"$(git describe --tags | sed 's/-[0-9]*-.*//g')\"/g" src-tauri/Cargo.toml
-
                   echo $(git describe --tags | sed 's/-[0-9]*-.*//g')
-
             - name: Upload Artifacts for Windows
               uses: actions/upload-artifact@v4
               with:
@@ -380,7 +376,6 @@ jobs:
                     -H "Accept: application/vnd.github.everest-preview+json" \
                     -H "Authorization: token ${{ secrets.TOKEN }}" \
                     -d '{"event_type": "plugins-updated"}'
-
     release-update:
         needs: [build-for-macos, build-for-windows, build-for-linux, build-for-windows-fix-runtime]
         runs-on: ubuntu-latest
@@ -419,7 +414,6 @@ jobs:
                   files: |
                       update.json
                       update-fix-runtime.json
-
     homebrew:
         name: Update Homebrew cask
         needs: build-for-macos
@@ -448,7 +442,6 @@ jobs:
                   brew tap pot-app/homebrew-tap
                   brew update
                   brew bump-cask-pr pot --version ${{ env.VERSION }} --no-browse
-
     winget:
         name: Update WinGet Package
         needs: build-for-windows
