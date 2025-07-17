@@ -5,7 +5,18 @@ on:
         tags-ignore: [updater]
 permissions: write-all
 
+# 增加全局 workflow 开关便于跳过或强制执行某些步骤
+env:
+  ENABLE_HOMEBREW: false
+
 jobs:
+    gatekeeper:
+        runs-on: ubuntu-latest
+        outputs:
+            enable_homebrew: ${{ steps.check.outputs.enable_homebrew }}
+        steps:
+            - id: check
+              run: echo "enable_homebrew=${{ env.ENABLE_HOMEBREW }}" >> $GITHUB_OUTPUT
     change-version:
         runs-on: ubuntu-latest
         outputs:
@@ -42,6 +53,7 @@ jobs:
                   if-no-files-found: error
 
     build-extension:
+        needs: [gatekeeper]
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
@@ -86,7 +98,7 @@ jobs:
                   files: .scripts/snipdo/pot.pbar
 
     build-for-macos:
-        needs: change-version
+        needs: [change-version, gatekeeper]
         strategy:
             fail-fast: false
             matrix:
@@ -119,14 +131,6 @@ jobs:
               run: |
                   export TAURI_PRIVATE_KEY="${{ secrets.TAURI_PRIVATE_KEY }}"
                   export TAURI_KEY_PASSWORD="${{ secrets.TAURI_KEY_PASSWORD }}"
-                  export APPLE_SIGNING_IDENTITY="${{ secrets.APPLE_SIGNING_IDENTITY }}"
-                  export APPLE_CERTIFICATE="${{ secrets.APPLE_CERTIFICATE }}"
-                  export APPLE_CERTIFICATE_PASSWORD="${{ secrets.APPLE_CERTIFICATE_PASSWORD }}"
-                  export APPLE_TEAM_ID="${{ secrets.APPLE_TEAM_ID }}"
-                  export APPLE_API_ISSUER="${{ secrets.APPLE_API_ISSUER }}"
-                  export APPLE_API_KEY="${{ secrets.APPLE_API_KEY }}"
-                  export APPLE_ID="${{ secrets.APPLE_ID }}"
-                  export APPLE_PASSWORD="${{ secrets.APPLE_PASSWORD }}"
                   pnpm tauri build --target ${{ matrix.target }}
                   sudo chmod +x src-tauri/resources/*
                   chmod +x src-tauri/resources/*
@@ -168,7 +172,7 @@ jobs:
                   files: src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app*
 
     build-for-windows:
-        needs: change-version
+        needs: [change-version, gatekeeper]
         strategy:
             fail-fast: false
             matrix:
@@ -227,7 +231,7 @@ jobs:
                   files: src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*setup*
 
     build-for-windows-fix-runtime:
-        needs: change-version
+        needs: [change-version, gatekeeper]
         strategy:
             fail-fast: false
             matrix:
@@ -298,7 +302,7 @@ jobs:
                   files: src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*setup*
 
     build-for-linux:
-        needs: change-version
+        needs: [change-version, gatekeeper]
         strategy:
             fail-fast: false
             matrix:
@@ -356,7 +360,7 @@ jobs:
                   path: src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage*
                   if-no-files-found: error
             - name: Upload Release
-              if: startsWith(github.ref, 'refs/tags') && matrix.target == 'x86_64-unknown-linux-gnu'
+              if: (startsWith(github.ref, 'refs/tags')) && matrix.target == 'x86_64-unknown-linux-gnu'
               uses: softprops/action-gh-release@v1
               with:
                   body_path: CHANGELOG
@@ -378,7 +382,7 @@ jobs:
                   files: src-tauri/target/${{ matrix.target }}/release/bundle/rpm/*.rpm
 
     trigger-docs-update:
-        needs: [build-for-macos, build-for-windows, build-for-linux]
+        needs: [build-for-macos, build-for-windows, build-for-linux, gatekeeper]
         runs-on: ubuntu-latest
         if: startsWith(github.ref, 'refs/tags')
         steps:
@@ -390,7 +394,7 @@ jobs:
                     -d '{"event_type": "plugins-updated"}'
 
     release-update:
-        needs: [build-for-macos, build-for-windows, build-for-linux, build-for-windows-fix-runtime]
+        needs: [build-for-macos, build-for-windows, build-for-linux, build-for-windows-fix-runtime, gatekeeper]
         runs-on: ubuntu-latest
         if: startsWith(github.ref, 'refs/tags')
         steps:
@@ -430,9 +434,9 @@ jobs:
 
     homebrew:
         name: Update Homebrew cask
-        needs: build-for-macos
+        needs: [build-for-macos, gatekeeper]
         runs-on: macos-latest
-        if: startsWith(github.ref, 'refs/tags')
+        if: (startsWith(github.ref, 'refs/tags')) && needs.gatekeeper.outputs.enable_homebrew == 'true'
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -459,7 +463,7 @@ jobs:
 
     winget:
         name: Update WinGet Package
-        needs: build-for-windows
+        needs: [build-for-windows, gatekeeper]
         runs-on: ubuntu-latest
         if: startsWith(github.ref, 'refs/tags')
         steps:
